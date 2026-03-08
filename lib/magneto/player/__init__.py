@@ -340,23 +340,26 @@ class MagnetoPlayer():
 			url = urllib.parse.unquote(url)
 			
 			# 2. Szukamy drugiego wystąpienia "http" (zagnieżdżonego linku)
-			# Szukamy od indeksu 7, aby pominąć protokół na samym początku linku
 			second_http_pos = url.find('http', 7)
 			
 			if second_http_pos != -1:
-				# Rozdzielamy link na bazę (Twój resolver) i stream (link do RD)
 				base_part = url[:second_http_pos]
 				stream_part = url[second_http_pos:]
-				
-				# Kodujemy stream_part w całości (safe="" oznacza brak bezpiecznych znaków, więc / -> %2F)
 				url = base_part + urllib.parse.quote(stream_part, safe="")
 			else:
-				# Jeśli nie ma drugiego http, stosujemy standardowe bezpieczne kodowanie
 				parsed = urllib.parse.urlparse(url)
+				
+				# Kodujemy ścieżkę zostawiając ukośniki
 				encoded_path = urllib.parse.quote(parsed.path, safe="/")
+				
+				# KLUCZOWA POPRAWKA: Kodujemy również część "query" (wszystko po '?')
+				# Zostawiamy '=' i '&' jako bezpieczne, aby nie zepsuć struktury parametrów
+				encoded_query = urllib.parse.quote(parsed.query, safe="=&")
+				
+				# Składamy z powrotem, używając zakodowanej ścieżki ORAZ zakodowanego query
 				url = urllib.parse.urlunparse((
 					parsed.scheme, parsed.netloc, encoded_path,
-					parsed.params, parsed.query, parsed.fragment
+					parsed.params, encoded_query, parsed.fragment
 				))
 		return url
 
