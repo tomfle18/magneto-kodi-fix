@@ -147,17 +147,26 @@ class SourcesResults(BaseDialog):
 					if get('library'): source = 'LIBRARY'
 					else: source = get('indexer') or get('addon') or 'N/A'
 					
-					# --- MODYFIKACJA: Wyciąganie flagi i tagu z nazwy (np. 🇵🇱 [RD⚡️]) ---
-					stream_name = get('name', '')
-					flag = '🇵🇱 ' if '🇵🇱' in stream_name else ''
+					# --- POPRAWIONY KOD ---
+					debrid_map = {
+						'realdebrid': 'RD',
+						'alldebrid': 'AD',
+						'premiumize': 'PM',
+						'torbox': 'TB',
+						'debridlink': 'DL',
+						'offcloud': 'OC'
+					}
+					# 1. Tworzymy tag debridu z tekstem "cached" lub "download"
+					tag = ''
+					svc = get('service')
+					if svc:
+						skrot = debrid_map.get(str(svc).lower(), upper(str(svc)))
+						status = '+' if get('cached') else ''
+						tag = f"[{skrot}{status}] "
+					# 2. Łączymy wszystko w etykietę Site
+					source_site = f"{tag}{upper(source)}"
+					# --- KONIEC POPRAWIONEGO KODU ---
 					
-					import re
-					match = re.search(r'(\[.*?\])', stream_name)
-					tag = match.group(1) + ' ' if match else ''
-					
-					# Doklejamy flagę i tag do nazwy źródła 
-					source_site = f"{flag}{tag}{upper(source)}"
-					# --- KONIEC MODYFIKACJI ---
 					provider, provider_icon = self.get_provider_and_path(lower(scrape_provider))
 					listitem = self.make_listitem()
 					listitem.setProperties({
