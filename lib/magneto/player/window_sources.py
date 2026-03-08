@@ -146,7 +146,18 @@ class SourcesResults(BaseDialog):
 					) if i) or '--'
 					if get('library'): source = 'LIBRARY'
 					else: source = get('indexer') or get('addon') or 'N/A'
-					source_site = upper(source)
+					
+					# --- MODYFIKACJA: Wyciąganie flagi i tagu z nazwy (np. 🇵🇱 [RD⚡️]) ---
+					stream_name = get('name', '')
+					flag = '🇵🇱 ' if '🇵🇱' in stream_name else ''
+					
+					import re
+					match = re.search(r'(\[.*?\])', stream_name)
+					tag = match.group(1) + ' ' if match else ''
+					
+					# Doklejamy flagę i tag do nazwy źródła 
+					source_site = f"{flag}{tag}{upper(source)}"
+					# --- KONIEC MODYFIKACJI ---
 					provider, provider_icon = self.get_provider_and_path(lower(scrape_provider))
 					listitem = self.make_listitem()
 					listitem.setProperties({
