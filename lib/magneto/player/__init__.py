@@ -339,7 +339,7 @@ class MagnetoPlayer():
 			# Odzkoduj najpierw, aby uniknąć podwójnego kodowania (gdyby link miał już jakieś %20)
 			url = urllib.parse.unquote(url)
 			# Zakoduj poprawnie, pomijając znaki strukturalne linku (zostaną zakodowane spacje i nawiasy)
-			url = urllib.parse.quote(url, safe=":/&=?~#+!$,;'@()*")
+			url = urllib.parse.quote(url)
 		return url
 
 	def play_cancelled(self):
