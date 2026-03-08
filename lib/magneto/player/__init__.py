@@ -332,8 +332,15 @@ class MagnetoPlayer():
 		return li
 
 	def resolve_sources(self, item):
+		import urllib.parse
 		logger('aiostreams', f"resolve_sources\n{json.dumps(item, indent=2)}")
-		return item.get('url')
+		url = item.get('url')
+		if url:
+			# Odzkoduj najpierw, aby uniknąć podwójnego kodowania (gdyby link miał już jakieś %20)
+			url = urllib.parse.unquote(url)
+			# Zakoduj poprawnie, pomijając znaki strukturalne linku (zostaną zakodowane spacje i nawiasy)
+			url = urllib.parse.quote(url, safe=":/&=?~#+!$,;'@()*")
+		return url
 
 	def play_cancelled(self):
 #		kore.xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem=make_listitem())
