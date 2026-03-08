@@ -336,10 +336,28 @@ class MagnetoPlayer():
 		logger('aiostreams', f"resolve_sources\n{json.dumps(item, indent=2)}")
 		url = item.get('url')
 		if url:
-			# Odzkoduj najpierw, aby uniknąć podwójnego kodowania (gdyby link miał już jakieś %20)
+			# 1. Dekodujemy, aby pracować na czystym tekście
 			url = urllib.parse.unquote(url)
-			# Zakoduj poprawnie, pomijając znaki strukturalne linku (zostaną zakodowane spacje i nawiasy)
-			url = urllib.parse.quote(url)
+			
+			# 2. Szukamy drugiego wystąpienia "http" (zagnieżdżonego linku)
+			# Szukamy od indeksu 7, aby pominąć protokół na samym początku linku
+			second_http_pos = url.find('http', 7)
+			
+			if second_http_pos != -1:
+				# Rozdzielamy link na bazę (Twój resolver) i stream (link do RD)
+				base_part = url[:second_http_pos]
+				stream_part = url[second_http_pos:]
+				
+				# Kodujemy stream_part w całości (safe="" oznacza brak bezpiecznych znaków, więc / -> %2F)
+				url = base_part + urllib.parse.quote(stream_part, safe="")
+			else:
+				# Jeśli nie ma drugiego http, stosujemy standardowe bezpieczne kodowanie
+				parsed = urllib.parse.urlparse(url)
+				encoded_path = urllib.parse.quote(parsed.path, safe="/")
+				url = urllib.parse.urlunparse((
+					parsed.scheme, parsed.netloc, encoded_path,
+					parsed.params, parsed.query, parsed.fragment
+				))
 		return url
 
 	def play_cancelled(self):
